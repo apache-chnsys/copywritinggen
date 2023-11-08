@@ -50,6 +50,12 @@
 			<version>2.1.0</version>
 		</dependency>
 
+		<dependency>java
+			<groupId>org.python</groupId>
+			<artifactId>jython-standalone</artifactId>
+			<version>2.7.0</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
