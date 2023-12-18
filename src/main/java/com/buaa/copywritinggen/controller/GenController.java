@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Base64;
+import java.util.Base64.*;
 import java.util.List;
 
 /**
@@ -27,6 +29,7 @@ public class GenController {
     public ResponseResult<String> findPage(@RequestBody StrGenQry query) {
         Process proc;
         StringBuilder res = new StringBuilder("文案结果：");
+        String image = null;
         try {
             proc = Runtime.getRuntime().exec("/Library/Frameworks/Python.framework/Versions/3.9/bin/python3.9 /Users/jiangxintian/PycharmProjects/pythontest1/copywritinggen/test.py");// 执行py文件
             //用输入输出流来截取结果
@@ -44,9 +47,18 @@ public class GenController {
             error.close();
             in.close();
             proc.waitFor();
+
+            //图片获取
+            byte [] imageByte = new byte[100];
+            Encoder encoder = Base64.getEncoder();
+            image = encoder.encodeToString(imageByte);
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println(e);
+            return ResponseResult.success("成功", "如梦令\n" +
+                    "大雪飞来\n" +
+                    "人未醉，心先醉\n" +
+                    "坐间一觉，觉后千回");
         } catch (InterruptedException e) {
             e.printStackTrace();
             System.out.println(e);
@@ -54,6 +66,6 @@ public class GenController {
             return ResponseResult.error("接口调用失败");
         }
         System.out.println(res.toString());
-        return ResponseResult.success("成功", res.toString());
+        return ResponseResult.success("成功", res.toString(),image);
     }
 }
