@@ -20,6 +20,16 @@ public class ResponseResult<T> {
 
     private T result;
 
+    private String image;
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
     public ResponseResult() {
         this.setCode(ResultCode.SUCCESS.getCode());
         this.setMsg(ResultCode.SUCCESS.getMsg());
@@ -28,6 +38,13 @@ public class ResponseResult<T> {
     public ResponseResult(int successFlag, String msg) {
         this.setCode(successFlag);
         this.setMsg(msg);
+    }
+
+    public ResponseResult(String message, T result,String image){
+        this.setCode(ResultCode.SUCCESS.getCode());
+        this.setImage(image);
+        this.setResult(result);
+        this.setMsg(message);
     }
 
     public ResponseResult(ResultCode resultEnum, String msg) {
@@ -57,6 +74,10 @@ public class ResponseResult<T> {
 
     public static <T> ResponseResult<T> success(String message, T result) {
         return new ResponseResult(message, result);
+    }
+
+    public static <T> ResponseResult<T> success(String message, T result,String image) {
+        return new ResponseResult(message, result,image);
     }
 
     public static <T> ResponseResult<T> error(String message) {
