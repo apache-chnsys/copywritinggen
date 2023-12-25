@@ -4,7 +4,9 @@ import com.buaa.copywritinggen.VO.ResponseResult;
 import com.buaa.copywritinggen.VO.StrGenQry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.python.indexer.ast.NPass;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -67,5 +69,55 @@ public class GenController {
         }
         System.out.println(res.toString());
         return ResponseResult.success("成功", res.toString(),image);
+    }
+
+    private static Process proc;// 执行py文件
+
+    static {
+        try {
+            proc = Runtime.getRuntime().exec("C:\\Users\\admin\\PycharmProjects\\project_test\\venv\\Scripts\\python3.9 " +
+                    "C:\\Users\\admin\\PycharmProjects\\project_test\\main.py");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Operation(summary = "正式的生成接口")
+    @PostMapping("/test1")
+    public ResponseResult<String> genPro(@RequestBody StrGenQry query, @RequestParam("file") MultipartFile file) {
+        // 根据输入类型调用不同的生成方法
+        // 根据文字生成
+        // 根据图片生成
+        // 根据语音生成
+        StringBuilder res = new StringBuilder("文案结果：");
+        return ResponseResult.success("成功", res.toString());
+    }
+
+    public static void main(String[] args) {
+        Process proc;
+        StringBuilder res = new StringBuilder("文案结果：");
+        try {
+            proc = Runtime.getRuntime().exec("/Library/Frameworks/Python.framework/Versions/3.9/bin/python3.9 /Users/jiangxintian/PycharmProjects/pythontest1/copywritinggen/test.py");// 执行py文件
+
+            //用输入输出流来截取结果
+            BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+            String line = null;
+            while ((line = in.readLine()) != null) {
+                System.out.println(line);
+            }
+            res.append(line);
+            BufferedReader error = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+            String errorLine = null;
+            while ((errorLine = error.readLine()) != null) {
+                System.out.println(errorLine);
+            }
+            error.close();
+            in.close();
+            proc.waitFor();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
