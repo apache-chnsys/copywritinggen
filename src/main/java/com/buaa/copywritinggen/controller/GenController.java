@@ -5,6 +5,7 @@ import com.buaa.copywritinggen.VO.StrGenQry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.python.indexer.ast.NPass;
+import org.python.util.PythonInterpreter;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -75,21 +76,29 @@ public class GenController {
 
     static {
         try {
-            proc = Runtime.getRuntime().exec("C:\\Users\\admin\\PycharmProjects\\project_test\\venv\\Scripts\\python3.9 " +
+            proc = Runtime.getRuntime().exec("C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python39\\python " +
                     "C:\\Users\\admin\\PycharmProjects\\project_test\\main.py");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
+    private static PythonInterpreter interpreter = new PythonInterpreter();// 执行py文件
+    static {
+        interpreter.exec("a=1");
+        }
+
     @Operation(summary = "正式的生成接口")
-    @PostMapping("/test1")
+    @PostMapping("/pro")
     public ResponseResult<String> genPro(@RequestBody StrGenQry query, @RequestParam("file") MultipartFile file) {
         // 根据输入类型调用不同的生成方法
         // 根据文字生成
         // 根据图片生成
         // 根据语音生成
         StringBuilder res = new StringBuilder("文案结果：");
+        interpreter.exec("a=a+1");
+        interpreter.exec("print(a)");
+
         return ResponseResult.success("成功", res.toString());
     }
 
@@ -97,7 +106,7 @@ public class GenController {
         Process proc;
         StringBuilder res = new StringBuilder("文案结果：");
         try {
-            proc = Runtime.getRuntime().exec("/Library/Frameworks/Python.framework/Versions/3.9/bin/python3.9 /Users/jiangxintian/PycharmProjects/pythontest1/copywritinggen/test.py");// 执行py文件
+            proc = Runtime.getRuntime().exec("C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python39\\python C:\\Users\\admin\\PycharmProjects\\project_test\\main.py");// 执行py文件
 
             //用输入输出流来截取结果
             BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
@@ -119,5 +128,9 @@ public class GenController {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+
+        PythonInterpreter interpreter = new PythonInterpreter();
+        interpreter.exec("a='abc'");
+        interpreter.exec("print(a)");
     }
 }

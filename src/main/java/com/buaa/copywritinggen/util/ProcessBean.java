@@ -12,7 +12,7 @@ public class ProcessBean {
 
     static {
         try {
-            proc = Runtime.getRuntime().exec("C:\\Users\\admin\\PycharmProjects\\project_test\\venv\\Scripts\\python3.9 " +
+            proc = Runtime.getRuntime().exec("C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python39\\python " +
                     "C:\\Users\\admin\\PycharmProjects\\project_test\\main.py");
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -1,11 +1,13 @@
 package com.buaa.copywritinggen.controller;
 
+import com.buaa.copywritinggen.VO.ResponseResult;
+import com.buaa.copywritinggen.VO.StrGenQry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.python.core.PyObject;
+import org.python.util.PythonInterpreter;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @Author jiangxintian
@@ -18,10 +20,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/test")
 public class TestController {
-    @Operation(summary = "This method is used to get the clients.")
-    @PostMapping("/test1")
-    public String findPage() {
-        return "hellp";
+
+    private static PythonInterpreter interpreter = new PythonInterpreter();// 执行py文件
+    static {
+        interpreter.exec("a=1");
+    }
+    @Operation(summary = "正式的生成接口")
+    @PostMapping("/pro")
+    public ResponseResult<String> genPro() {
+        interpreter.exec("a=a+1");
+        interpreter.exec("print(a)");
+        PyObject result = interpreter.get("a");
+        return ResponseResult.success("成功", result.toString());
     }
 
     @Operation(summary = "This method is used to get the clients.")
