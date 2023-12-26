@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
-@Component
+//@Component
 public class ProcessBean {
 
     private static Process proc;// 执行py文件

@@ -22,11 +22,16 @@ public class StrGenQry {
      * 生成类型
      */
     @NotNull
-    private String genType;
+    private Integer genType;
 
 
     /**
      * 用户文字
      */
-    private Integer userText;
+    private String userText;
+
+    /**
+     * 输入参数类型  1-图片， 2-语音
+     */
+    private Integer inputType;
 }

@@ -9,6 +9,8 @@ import org.python.util.PythonInterpreter;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.*;
+
 /**
  * @Author jiangxintian
  * @Date 2023/11/7 11:56
@@ -34,9 +36,4 @@ public class TestController {
         return ResponseResult.success("成功", result.toString());
     }
 
-    @Operation(summary = "This method is used to get the clients.")
-    @GetMapping("/test2")
-    public String getTest() {
-        return "hello";
-    }
 }

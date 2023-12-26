@@ -2,10 +2,15 @@ package com.buaa.copywritinggen.controller;
 
 import com.buaa.copywritinggen.VO.ResponseResult;
 import com.buaa.copywritinggen.VO.StrGenQry;
+import com.buaa.copywritinggen.selfEnum.InputTypeEnum;
+import com.buaa.copywritinggen.service.GenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.python.core.Py;
+import org.python.core.PySystemState;
 import org.python.indexer.ast.NPass;
 import org.python.util.PythonInterpreter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,7 +19,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Base64;
 import java.util.Base64.*;
-import java.util.List;
+import java.util.Properties;
+
 
 /**
  * @Author jiangxintian
@@ -27,6 +33,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/Gen")
 public class GenController {
+
     @Operation(summary = "使用文字生成")
     @PostMapping("/test1")
     public ResponseResult<String> findPage(@RequestBody StrGenQry query) {
@@ -72,65 +79,94 @@ public class GenController {
         return ResponseResult.success("成功", res.toString(),image);
     }
 
-    private static Process proc;// 执行py文件
 
-    static {
-        try {
-            proc = Runtime.getRuntime().exec("C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python39\\python " +
-                    "C:\\Users\\admin\\PycharmProjects\\project_test\\main.py");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static PythonInterpreter interpreter = new PythonInterpreter();// 执行py文件
-    static {
-        interpreter.exec("a=1");
-        }
+    @Autowired
+    private GenService genService;
 
     @Operation(summary = "正式的生成接口")
-    @PostMapping("/pro")
-    public ResponseResult<String> genPro(@RequestBody StrGenQry query, @RequestParam("file") MultipartFile file) {
+    @PostMapping("/proByText")
+    public ResponseResult<String> genProByText(@RequestBody StrGenQry query) {
         // 根据输入类型调用不同的生成方法
         // 根据文字生成
+        String res = genService.genByText(query.getUserText(), query.getGenType(), proc);
+        return ResponseResult.success("成功", res);
+    }
+
+    @Operation(summary = "正式的生成接口")
+    @PostMapping("/proByAudio")
+    public ResponseResult<String> genProByAudio(@RequestBody StrGenQry query, @RequestParam("file") MultipartFile file) {
+        // 根据输入类型调用不同的生成方法
+        String res = null;
         // 根据图片生成
-        // 根据语音生成
-        StringBuilder res = new StringBuilder("文案结果：");
-        interpreter.exec("a=a+1");
-        interpreter.exec("print(a)");
-
-        return ResponseResult.success("成功", res.toString());
-    }
-
-    public static void main(String[] args) {
-        Process proc;
-        StringBuilder res = new StringBuilder("文案结果：");
-        try {
-            proc = Runtime.getRuntime().exec("C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python39\\python C:\\Users\\admin\\PycharmProjects\\project_test\\main.py");// 执行py文件
-
-            //用输入输出流来截取结果
-            BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-            String line = null;
-            while ((line = in.readLine()) != null) {
-                System.out.println(line);
-            }
-            res.append(line);
-            BufferedReader error = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
-            String errorLine = null;
-            while ((errorLine = error.readLine()) != null) {
-                System.out.println(errorLine);
-            }
-            error.close();
-            in.close();
-            proc.waitFor();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        if(InputTypeEnum.PICTURE.getCode().equals(query.getInputType())) {
+            res = genService.genByAudio(query.getUserText(), query.getGenType(), proc, file);
         }
-
-        PythonInterpreter interpreter = new PythonInterpreter();
-        interpreter.exec("a='abc'");
-        interpreter.exec("print(a)");
+        else {
+            // 根据语音生成
+            res = genService.genByAudio(query.getUserText(), query.getGenType(), proc, file);
+        }
+        return ResponseResult.success("成功", res);
     }
-}
+
+    private static Process proc;
+//
+//    static {
+//        try {
+////            proc = Runtime.getRuntime().exec("C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python39\\python " +
+////                    "C:\\Users\\admin\\PycharmProjects\\project_test\\main.py");
+//            proc = Runtime.getRuntime().exec
+//                    ("/Library/Frameworks/Python.framework/Versions/3.9/bin/python3.9" +
+//                            " /Users/jiangxintian/PycharmProjects/pythontest1/copywritinggen/test.py");// 执行py文件
+//            //用输入输出流来截取结果
+//            BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+//            String line = null;
+//            while ((line = in.readLine()) != null) {
+//                System.out.println(line);
+//            }
+//            in.close();
+//            proc.waitFor();
+//        } catch (IOException | InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+
+//    private static PythonInterpreter interpreter = new PythonInterpreter();// 执行py文件
+//    static {
+//        // 设置Python路径
+//        Properties properties = new Properties();
+//        // 修改系统python环境变量
+//        // properties.setProperty("python.path", "/Library/Frameworks/Python.framework/Versions/3.9/bin/python3");
+//        properties.setProperty("python.path", "/usr/local/bin/python3.9");
+//        properties.setProperty("python.home", "/usr/local/bin/python3.9");
+//
+//        PySystemState sys = Py.getSystemState();
+//        System.out.println("系统路径");
+//        System.out.println(sys.path);
+//        sys.path.clear();
+////        sys.path.add("/Library/Frameworks/Python.framework/Versions/3.9/Lib");
+//        System.out.println(sys.path);
+//        // 初始化Python解释器
+//        interpreter.initialize(properties, null, new String[0]);
+//        try {
+//            interpreter.exec("import sys");
+//            interpreter.exec("print(sys.prefix)");
+//            interpreter.exec("print(sys.version)");
+//            interpreter.exec("path = \"/Library/Frameworks/Python.framework/Versions/3.9/Lib\"");
+//            interpreter.exec("sys.path.append(path)");
+//            interpreter.exec("print sys.path");
+//            interpreter.exec("from transformers import AutoTokenizer, AutoModel");
+//            interpreter.exec("import torch");
+//            interpreter.exec("model_name_or_path = '../learning/chatglm_6b'");
+//            interpreter.exec("from transformers import AutoTokenizer, AutoModel");
+//            interpreter.exec("import os");
+//            interpreter.exec("os.environ[\"CUDA_VISIBLE_DEVICES\"] = \"1,3\"");
+//            interpreter.exec("model_old = AutoModel.from_pretrained(model_name_or_path,load_in_8bit=False,trust_remote_code = True)");
+//            interpreter.exec("peft_loaded = PeftModel.from_pretrained(model_old,ckpt_path).cuda()");
+//            interpreter.exec("model_new = peft_loaded.merge_and_unload()");
+//            interpreter.exec("tokenizer = AutoTokenizer.from_pretrained( model_name_or_path, trust_remote_code=True)");
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            System.out.println(e);
+//        }
+    }
+

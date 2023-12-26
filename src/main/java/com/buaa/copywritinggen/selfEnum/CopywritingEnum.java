@@ -70,4 +70,21 @@ public enum CopywritingEnum {
      */
     private String desc;
 
+    /**
+     * 获取名称
+     *
+     * @param code
+     * @return
+     */
+    public static String getDesc(Integer code) {
+
+        for (CopywritingEnum copywritingEnum : CopywritingEnum.values()) {
+            if (copywritingEnum.getCode().equals(code)) {
+                return copywritingEnum.getDesc();
+            }
+        }
+        //todo 不返回空值
+        return null;
+    }
+
 }
