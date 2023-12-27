@@ -4,7 +4,7 @@
 # @Author : jiangxintian
 # @File : peom_evaluate.py
 # 如有bug我吞粪自尽
-# 该文件实现图片生成诗词
+# 该文件实现关键词生成图片+诗词
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 from PIL import Image
@@ -16,6 +16,10 @@ from transformers import AutoModel
 from diffusers import UniDiffuserPipeline
 import sys
 
+"""
+解析命令行参数
+:return:
+"""
 # 获取脚本名称
 user_text = sys.argv[1]
 print("user_text:", user_text)
@@ -25,6 +29,9 @@ print("type:", type)
 
 file_path = sys.argv[3]
 print("file_path:", file_path)
+
+res_file_path = sys.argv[4]
+print("file_path:", res_file_path)
 
 pipe = UniDiffuserPipeline.from_pretrained("../learning/unidiffuser-v1") # model 1:https://huggingface.co/thu-ml/unidiffuser-v1
 print('uni model loaded.')
@@ -45,29 +52,8 @@ model_new = peft_loaded.merge_and_unload()
 tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, trust_remote_code=True) # model 3
 
 
-# 1、image to text
-init_image = Image.open(file_path).convert("RGB")
-init_image = init_image.resize((512, 512))
-
-sample = pipe(image=init_image, num_inference_steps=20, guidance_scale=8.0)
-i2t_text = sample.text[0]
-print(i2t_text)
-
-# 2、text to Chinese
-sentence = i2t_text
-input_ids = tokenizer_trs.encode(sentence, return_tensors="pt")
-sentence_generated_tokens = model_trs.generate(input_ids)
-sentence_decoded_pred = tokenizer_trs.decode(sentence_generated_tokens[0], skip_special_tokens=True)
-print(sentence_decoded_pred)
-
-# 3、keywords extract
-words = pseg.cut(sentence_decoded_pred)
-nouns = [word for word, flag in words if flag.startswith('n')]
-
-print("提取的名词:", "/ ".join(nouns))
-
 # 4、 peom generate
-keywords = ' '.join(nouns)
+keywords = user_text
 query = f"问: 写一首以{keywords}为关键词的{type}"
 res,_ = model_new.chat(tokenizer,query=query)
 print(res)
@@ -90,4 +76,4 @@ prompt = sentence_decoded_pred_ze
 
 sample = pipe(prompt=prompt, num_inference_steps=20, guidance_scale=8.0)
 t2i_image = sample.images[0]
-t2i_image.save("peom_image.png")
+t2i_image.save(res_file_path)

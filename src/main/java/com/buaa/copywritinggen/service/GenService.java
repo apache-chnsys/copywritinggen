@@ -2,17 +2,24 @@ package com.buaa.copywritinggen.service;
 
 import com.buaa.copywritinggen.selfEnum.CopywritingEnum;
 
+import com.buaa.copywritinggen.util.SpeechUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
+import org.springframework.http.HttpHeaders;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
 
@@ -33,7 +40,7 @@ public class GenService {
      * @param text
      * @return
      */
-    public String genByText(String text, Integer type, Process proc){
+    public String genByTextToText(String text, Integer type, Process proc){
         StringBuilder res = new StringBuilder("文案结果：");
         String image = null;
         try {
@@ -76,6 +83,151 @@ public class GenService {
     }
 
     /**
+     * 根据文字生成诗词图片
+     * @param text
+     * @return
+     */
+    public ResponseEntity<Resource> genByTextToPicture(String text, Integer type, Process proc){
+        StringBuilder res = new StringBuilder("文案结果：");
+        String image = null;
+        String resPath = uploadDirectory + "/res" + System.currentTimeMillis() + ".png";
+        try {
+            StringBuilder stringBuilder
+                    = new StringBuilder().append(pythonPath)
+                    .append(" ")
+                    .append("/Users/jiangxintian/PycharmProjects/pythontest1/copywritinggen/peom_evaluate3.py")
+                    .append(" ")
+                    .append(text)
+                    .append(" ")
+                    .append(CopywritingEnum.getDesc(type))
+                    .append(" ")
+                    .append(resPath);
+            proc = Runtime.getRuntime().exec(stringBuilder.toString());// 执行py文件
+            //用输入输出流来截取结果
+            BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+            String line = null;
+            while ((line = in.readLine()) != null) {
+                System.out.println(line);
+                res.append(line);
+            }
+            BufferedReader error = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+            String errorLine = null;
+            while ((errorLine = error.readLine()) != null) {
+                System.out.println(errorLine);
+            }
+            error.close();
+            in.close();
+            proc.waitFor();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println(e);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            System.out.println(e);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e);
+        }
+        // 获取文件路径
+        Path filePath = Paths.get(resPath);
+
+        try {
+            // 创建文件资源
+            Resource resource = new UrlResource(filePath.toUri());
+
+            // 检查文件是否存在并可读
+            if (resource.exists() && resource.isReadable()) {
+                // 设置响应头
+                HttpHeaders headers = new HttpHeaders();
+                headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=filename.ext");
+
+                // 返回文件资源作为响应
+                return ResponseEntity.ok()
+                        .headers(headers)
+                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                        .body(resource);
+            }
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        System.out.println(res.toString());
+        // 文件不存在或不可读
+        return ResponseEntity.notFound().build();
+    }
+
+    /**
+     * 根据文字生成诗词图片
+     * @param text
+     * @return
+     */
+    public ResponseEntity<Resource> genByTextToAudio(String text, Integer type, Process proc){
+        StringBuilder res = new StringBuilder("文案结果：");
+        String image = null;
+        String resPath = uploadDirectory + "/res" + System.currentTimeMillis() + ".mp3";
+        try {
+            StringBuilder stringBuilder
+                    = new StringBuilder().append(pythonPath)
+                    .append(" ")
+                    .append("/Users/jiangxintian/PycharmProjects/pythontest1/copywritinggen/peom_evaluate2.py")
+                    .append(" ")
+                    .append(text)
+                    .append(" ")
+                    .append(CopywritingEnum.getDesc(type));
+            proc = Runtime.getRuntime().exec(stringBuilder.toString());// 执行py文件
+            //用输入输出流来截取结果
+            BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+            String line = null;
+            while ((line = in.readLine()) != null) {
+                System.out.println(line);
+                res.append(line);
+            }
+            BufferedReader error = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+            String errorLine = null;
+            while ((errorLine = error.readLine()) != null) {
+                System.out.println(errorLine);
+            }
+            error.close();
+            in.close();
+            proc.waitFor();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println(e);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            System.out.println(e);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e);
+        }
+        System.out.println(res.toString());
+        byte[] bytes = SpeechUtil.synByByte(res.toString(), SpeechUtil.init_client(), resPath);
+        // 获取文件路径
+        Path filePath = Paths.get(resPath);
+        try {
+            // 创建文件资源
+            Resource resource = new UrlResource(filePath.toUri());
+
+            // 检查文件是否存在并可读
+            if (resource.exists() && resource.isReadable()) {
+                // 设置响应头
+                HttpHeaders headers = new HttpHeaders();
+                headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=filename.ext");
+
+                // 返回文件资源作为响应
+                return ResponseEntity.ok()
+                        .headers(headers)
+                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                        .body(resource);
+            }
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        System.out.println(res.toString());
+        // 文件不存在或不可读
+        return ResponseEntity.notFound().build();
+    }
+
+    /**
      * 根据语音生成诗词
      * @param text
      * @return
@@ -87,7 +239,7 @@ public class GenService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        String res = genByText(text, type, proc);
+        String res = genByTextToText(text, type, proc);
         return res;
     }
 

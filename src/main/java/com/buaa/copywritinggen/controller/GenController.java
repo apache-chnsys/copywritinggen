@@ -3,6 +3,7 @@ package com.buaa.copywritinggen.controller;
 import com.buaa.copywritinggen.VO.ResponseResult;
 import com.buaa.copywritinggen.VO.StrGenQry;
 import com.buaa.copywritinggen.selfEnum.InputTypeEnum;
+import com.buaa.copywritinggen.selfEnum.OutputTypeEnum;
 import com.buaa.copywritinggen.service.GenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -19,8 +20,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Base64;
 import java.util.Base64.*;
-import java.util.Properties;
-
 
 /**
  * @Author jiangxintian
@@ -87,8 +86,16 @@ public class GenController {
     @PostMapping("/proByText")
     public ResponseResult<String> genProByText(@RequestBody StrGenQry query) {
         // 根据输入类型调用不同的生成方法
+        String res = null;
         // 根据文字生成
-        String res = genService.genByText(query.getUserText(), query.getGenType(), proc);
+        if(OutputTypeEnum.TEXT.getCode().equals(query.getOutputType())) {
+            res = genService.genByTextToText(query.getUserText(), query.getGenType(), proc);
+        }else if(OutputTypeEnum.PICTURE.getCode().equals(query.getOutputType())) {
+            res = genService.genByTextToText(query.getUserText(), query.getGenType(), proc);
+        }else {
+            res = genService.genByTextToText(query.getUserText(), query.getGenType(), proc);
+        }
+        // 根据文字生成图片
         return ResponseResult.success("成功", res);
     }
 
@@ -99,7 +106,7 @@ public class GenController {
         String res = null;
         // 根据图片生成
         if(InputTypeEnum.PICTURE.getCode().equals(query.getInputType())) {
-            res = genService.genByAudio(query.getUserText(), query.getGenType(), proc, file);
+            res = genService.genByPicture(query.getUserText(), query.getGenType(), proc, file);
         }
         else {
             // 根据语音生成

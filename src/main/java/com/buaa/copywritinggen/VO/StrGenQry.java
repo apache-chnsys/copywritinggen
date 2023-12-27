@@ -24,7 +24,6 @@ public class StrGenQry {
     @NotNull
     private Integer genType;
 
-
     /**
      * 用户文字
      */
@@ -34,4 +33,9 @@ public class StrGenQry {
      * 输入参数类型  1-图片， 2-语音
      */
     private Integer inputType;
+
+    /**
+     * 输出类型  1-图片， 2-语音， 3-文字
+     */
+    private Integer outputType;
 }

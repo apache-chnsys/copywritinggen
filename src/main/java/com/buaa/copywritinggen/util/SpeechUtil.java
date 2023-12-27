@@ -1,7 +1,12 @@
 package com.buaa.copywritinggen.util;
 
 import com.baidu.aip.speech.AipSpeech;
+import com.baidu.aip.speech.TtsResponse;
+import com.baidu.aip.util.Util;
+import jnr.posix.WString;
 import org.json.JSONObject;
+
+import java.io.IOException;
 
 /**
  * @Author jiangxintian
@@ -40,10 +45,40 @@ public class SpeechUtil {
         System.out.println(res.toString(2));
     }
 
+    /**
+     * 语音识别
+     * @param data
+     * @param client
+     * @return
+     */
     public static JSONObject asrByByte(byte[] data, AipSpeech client){
         // 调用接口
         JSONObject asrRes2 = client.asr(data, "wav", 16000, null);
         System.out.println(asrRes2);
         return asrRes2;
+    }
+
+    /**
+     * 语音合成
+     * @param text
+     * @param client
+     * @return
+     */
+    public static byte[] synByByte(String text, AipSpeech client, String path){
+        // 调用接口
+        TtsResponse res = client.synthesis(text, "zh", 1, null);
+        byte[] data = res.getData();
+        JSONObject res1 = res.getResult();
+        if (data != null) {
+            try {
+                Util.writeBytesToFileSystem(data, "output.mp3");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if (res1 != null) {
+            System.out.println(res1.toString(2));
+        }
+        return data;
     }
 }
