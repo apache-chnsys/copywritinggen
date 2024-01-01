@@ -1,16 +1,16 @@
 package com.buaa.copywritinggen.controller;
 
+import com.alibaba.fastjson.JSONObject;
+import com.buaa.copywritinggen.VO.GenQuery;
 import com.buaa.copywritinggen.VO.ResponseResult;
 import com.buaa.copywritinggen.VO.StrGenQry;
+import com.buaa.copywritinggen.selfEnum.CopywritingEnum;
 import com.buaa.copywritinggen.selfEnum.InputTypeEnum;
 import com.buaa.copywritinggen.selfEnum.OutputTypeEnum;
 import com.buaa.copywritinggen.service.GenService;
+import com.buaa.copywritinggen.util.HttpClientUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.python.core.Py;
-import org.python.core.PySystemState;
-import org.python.indexer.ast.NPass;
-import org.python.util.PythonInterpreter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,7 +19,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Base64;
-import java.util.Base64.*;
+import java.util.Base64.Encoder;
 
 /**
  * @Author jiangxintian
@@ -32,6 +32,9 @@ import java.util.Base64.*;
 @RestController
 @RequestMapping("/Gen")
 public class GenController {
+
+    @Autowired
+    private GenService genService;
 
     @Operation(summary = "使用文字生成")
     @PostMapping("/test1")
@@ -78,9 +81,86 @@ public class GenController {
         return ResponseResult.success("成功", res.toString(),image);
     }
 
+    @Operation(summary = "整合生成接口")
+    @PostMapping("/multiGen")
+    public ResponseResult<String> multiGen(@RequestBody GenQuery genQuery, @RequestParam(value = "audio",required = false) MultipartFile audio) {
+        ResponseResult responseResult = new ResponseResult();
+        StringBuilder res = new StringBuilder("文案结果：");
+        System.out.println("---"+genQuery.toString());
+        //根据flag判断
+        switch (genQuery.getFlag()){
+            case "1":{
+                //既没有图片也没有音频
+                try {
+                    responseResult = genWord(genQuery, res);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    System.out.println(e);
+                }
+                break;
+            }
+            case "3":{
+                //有音频没有图片
+               String ret = genService.genByAudio(genQuery.getUserText(), Integer.parseInt(genQuery.getGenType()), proc, audio);
+               System.out.println("Audio:"+ret);
+               genQuery.setUserText(ret);
+                try {
+                    responseResult = genWord(genQuery,res);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    System.out.println(e);
+                }
+            }
+            case "2":{
+                //有图片没有音频
+                try {
+                    String keyword = genImageStr(genQuery);
+                    genQuery.setUserText(keyword);
+                    responseResult = genWord(genQuery,res);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            default:{
+                //图片声音都存在
 
-    @Autowired
-    private GenService genService;
+            }
+        }
+        return responseResult;
+    }
+
+    private static String genImageStr(GenQuery genQuery) throws IOException {
+        JSONObject req = new JSONObject();
+        req.put("image", genQuery.getImage().split(",")[1]);
+        //System.out.println("req:"+req.toString());
+        JSONObject jsonObject = HttpClientUtils.doPost("http://localhost:5000/image_keyword",req);
+        System.out.println("imageJsonRet:"+jsonObject.toString());
+        String keyword = (String) jsonObject.get("image_keyword");
+        return keyword;
+    }
+
+    private static ResponseResult genWord(GenQuery genQuery, StringBuilder res) throws IOException {
+        JSONObject req = new JSONObject();
+        req.put("query", genQuery.getUserText() + CopywritingEnum.getDesc(Integer.parseInt(genQuery.getGenType())));
+        System.out.println("req:"+req.toString());
+        JSONObject jsonObject = HttpClientUtils.doPost("http://localhost:5000/generate_poem", req);
+        res.append(jsonObject.get("poem"));
+
+        System.out.println("check:"+genQuery.isCheck());
+        String imageBase64 = "";
+        if(genQuery.isCheck()){
+            System.out.println("genPic");
+            System.out.println(jsonObject);
+            JSONObject jsonObjectPic= HttpClientUtils.doPost("http://localhost:5000/generate_picture", jsonObject);
+
+            imageBase64 = (String) jsonObjectPic.get("picture");
+            System.out.println("PicRet64:"+imageBase64);
+            return ResponseResult.success("成功", res.toString(),imageBase64);
+        }
+
+        return ResponseResult.success("成功", res.toString());
+    }
+
 
     @Operation(summary = "正式的生成接口")
     @PostMapping("/proByText")

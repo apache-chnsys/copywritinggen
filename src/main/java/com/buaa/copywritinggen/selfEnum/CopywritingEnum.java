@@ -19,47 +19,47 @@ public enum CopywritingEnum {
     /**
      * 绝句 1
      */
-    QUATRAIN_1(1, "绝句"),
+    QUATRAIN_1(1, "的诗"),
 
     /**
      * 律诗 2
      */
-    METRICAL(2, "绝句"),
+    METRICAL(2, "的诗"),
 
     /**
      * 元曲 3
      */
-    YUAN_DYNASTY(3, "元曲"),
+    YUAN_DYNASTY(3, "的元曲"),
 
     /**
      * 风格绝句 4
      */
-    QUATRAIN_2(4, "风格绝句"),
+    QUATRAIN_2(4, "的风格绝句"),
 
     /**
      * 词 5
      */
-    SPEECH(5, "词"),
+    SPEECH(5, "的词"),
 
     /**
      * 对联 6
      */
-    ANTITHETICAL(6, "对联"),
+    ANTITHETICAL(6, "的对联"),
 
     /**
      * 朋友圈文案 7
      */
-    FRIENDS_COPYWRITING(7, "朋友圈文案"),
+    FRIENDS_COPYWRITING(7, "的朋友圈文案"),
 
     /**
      * 朋友圈标题 8
      */
-    TITLE(8, "朋友圈标题"),
+    TITLE(8, "的小红书标题"),
 
     /**
      * 小红书文案 9
      */
-    XIAOHONGSHU(9, "小红书文案");
+    XIAOHONGSHU(9, "的小红书文案");
 
     /**
      * 标识码
