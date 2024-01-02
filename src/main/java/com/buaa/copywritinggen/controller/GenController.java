@@ -10,6 +10,7 @@ import com.buaa.copywritinggen.selfEnum.OutputTypeEnum;
 import com.buaa.copywritinggen.service.GenService;
 import com.buaa.copywritinggen.service.Speech2TextService;
 import com.buaa.copywritinggen.util.HttpClientUtils;
+import com.buaa.copywritinggen.util.SpeechUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -142,6 +143,15 @@ public class GenController {
             }
         }
         return responseResult;
+    }
+
+    @Operation(summary = "文字生成语音")
+    @PostMapping("/textForAudio")
+    public ResponseResult<String> textForAudio(@RequestBody GenQuery genQuery) {
+        byte[] bytes = SpeechUtil.synByByte(genQuery.getText(), SpeechUtil.init_client());
+        Encoder encoder = Base64.getEncoder();
+        String audioBase64 = encoder.encodeToString(bytes);
+        return ResponseResult.success("成功", audioBase64);
     }
 
     private static String genImageStr(GenQuery genQuery) throws IOException {

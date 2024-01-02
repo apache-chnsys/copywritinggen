@@ -96,4 +96,28 @@ public class SpeechUtil {
         }
         return data;
     }
+
+    /**
+     * 语音合成
+     * @param text
+     * @param client
+     * @return
+     */
+    public static byte[] synByByte(String text, AipSpeech client){
+        // 调用接口
+        TtsResponse res = client.synthesis(text, "zh", 1, null);
+        byte[] data = res.getData();
+        JSONObject res1 = res.getResult();
+        if (data != null) {
+            try {
+                Util.writeBytesToFileSystem(data, "output.mp3");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if (res1 != null) {
+            System.out.println(res1.toString(2));
+        }
+        return data;
+    }
 }

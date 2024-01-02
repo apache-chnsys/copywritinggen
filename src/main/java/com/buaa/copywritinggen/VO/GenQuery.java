@@ -22,4 +22,5 @@ public class GenQuery {
 
     private boolean check;
 
+    private String text;
 }
