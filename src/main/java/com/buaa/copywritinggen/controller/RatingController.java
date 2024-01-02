@@ -30,13 +30,46 @@ public class RatingController {
 
     @PostMapping("/saveRating")
     public ResponseResult<String> saveRating(@RequestBody RatingQuery ratingQuery) {
-        try (FileWriter fileWriter = new FileWriter(FILE_PATH, true)) {
-            String ratingData = ratingQuery.getUserId() + "," + ratingQuery.getRating() + "," + ratingQuery.getComment() + "\n";
-            fileWriter.write(ratingData);
-            return ResponseResult.success("成功", null);
+        List<RatingQuery> ratings = new ArrayList<>();
+
+        // 读取现有的评分数据
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(FILE_PATH))) {
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                String[] ratingData = line.split(",");
+                if (ratingData.length == 3) {
+                    RatingQuery rating = new RatingQuery(ratingData[0], Double.parseDouble(ratingData[1]), ratingData[2]);
+                    ratings.add(rating);
+                }
+            }
         } catch (IOException e) {
             e.printStackTrace();
-            return ResponseResult.success("失败", null);
+            return ResponseResult.error("失败");
+        }
+
+        // 检查是否存在相同用户ID的评分
+        boolean ratingExists = false;
+        for (RatingQuery rating : ratings) {
+            if (rating.getUserId().equals(ratingQuery.getUserId())) {
+                ratingExists = true;
+                ratings.remove(rating);
+                break;
+            }
+        }
+
+        // 添加新的评分数据
+        ratings.add(new RatingQuery(ratingQuery.getUserId(), ratingQuery.getRating(), ratingQuery.getComment()));
+
+        // 保存评分数据到文件
+        try (FileWriter fileWriter = new FileWriter(FILE_PATH, false)) {
+            for (RatingQuery rating : ratings) {
+                String ratingData = rating.getUserId() + "," + rating.getRating() + "," + rating.getComment() + "\n";
+                fileWriter.write(ratingData);
+            }
+            return ResponseResult.success("成功");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseResult.error("失败");
         }
     }
 
