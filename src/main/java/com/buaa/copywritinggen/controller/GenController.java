@@ -8,6 +8,7 @@ import com.buaa.copywritinggen.selfEnum.CopywritingEnum;
 import com.buaa.copywritinggen.selfEnum.InputTypeEnum;
 import com.buaa.copywritinggen.selfEnum.OutputTypeEnum;
 import com.buaa.copywritinggen.service.GenService;
+import com.buaa.copywritinggen.service.Speech2TextService;
 import com.buaa.copywritinggen.util.HttpClientUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -35,6 +36,10 @@ public class GenController {
 
     @Autowired
     private GenService genService;
+
+    @Autowired
+    private Speech2TextService speech2TextService;
+
 
     @Operation(summary = "使用文字生成")
     @PostMapping("/test1")
@@ -101,7 +106,7 @@ public class GenController {
             }
             case "3":{
                 //有音频没有图片
-               String ret = genService.genByAudio(genQuery.getUserText(), Integer.parseInt(genQuery.getGenType()), proc, audio);
+               String ret = genService.asrByAudioToText(audio);
                System.out.println("Audio:"+ret);
                genQuery.setUserText(ret);
                 try {
@@ -122,8 +127,18 @@ public class GenController {
                 }
             }
             default:{
-                //图片声音都存在
-
+                try {
+                    //图片声音都存在
+                    String ret = genService.asrByAudioToText(audio);
+                    System.out.println("Audio:"+ret);
+                    String keyword = genImageStr(genQuery);
+                    System.out.println("image:"+keyword);
+                    String text = ret + "以及" + keyword;
+                    genQuery.setUserText(text);
+                    responseResult = genWord(genQuery,res);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
         return responseResult;
@@ -186,11 +201,11 @@ public class GenController {
         String res = null;
         // 根据图片生成
         if(InputTypeEnum.PICTURE.getCode().equals(query.getInputType())) {
-            res = genService.genByPicture(query.getUserText(), query.getGenType(), proc, file);
+            res = genService.genByPictureToText(query.getUserText(), query.getGenType(), proc, file);
         }
         else {
             // 根据语音生成
-            res = genService.genByAudio(query.getUserText(), query.getGenType(), proc, file);
+            res = genService.genByAudioToText(query.getUserText(), query.getGenType(), proc, file);
         }
         return ResponseResult.success("成功", res);
     }

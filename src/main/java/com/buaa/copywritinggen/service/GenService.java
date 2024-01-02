@@ -232,7 +232,7 @@ public class GenService {
      * @param text
      * @return
      */
-    public String genByAudio(String text, Integer type, Process proc, MultipartFile file){
+    public String genByAudioToText(String text, Integer type, Process proc, MultipartFile file){
         //将语音转换为文字，然后再调用文字生成
         try{
             speech2TextService.asr(file.getBytes());
@@ -244,11 +244,27 @@ public class GenService {
     }
 
     /**
+     * 根据语音识别文字
+     * @param file
+     * @return
+     */
+    public String asrByAudioToText(MultipartFile file){
+        String asr = null;
+        //将语音转换为文字，然后再调用文字生成
+        try{
+            asr = speech2TextService.asr(file.getBytes());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return asr;
+    }
+
+    /**
      * 根据图片生成诗词
      * @param text
      * @return
      */
-    public String genByPicture(String text, Integer type, Process proc, MultipartFile file){
+    public String genByPictureToText(String text, Integer type, Process proc, MultipartFile file){
         StringBuilder res = new StringBuilder("文案结果：");
         // 检查文件是否为空
         if (file.isEmpty()) {
