@@ -88,7 +88,7 @@ public class GenController {
 
     @Operation(summary = "整合生成接口")
     @PostMapping("/multiGen")
-    public ResponseResult<String> multiGen(@RequestBody GenQuery genQuery, @RequestParam(value = "audio",required = false) MultipartFile audio) {
+    public ResponseResult<String> multiGen(GenQuery genQuery, @RequestParam(value = "audio",required = false) MultipartFile audio) {
         ResponseResult responseResult = new ResponseResult();
         StringBuilder res = new StringBuilder("文案结果：");
         System.out.println("---"+genQuery.toString());
