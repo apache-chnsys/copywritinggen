@@ -1,9 +1,10 @@
 package com.buaa.copywritinggen.service;
 
 import com.baidu.aip.speech.AipSpeech;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
-import org.json.simple.JSONArray;
+
 import org.json.simple.parser.JSONParser;
 import java.io.IOException;
 

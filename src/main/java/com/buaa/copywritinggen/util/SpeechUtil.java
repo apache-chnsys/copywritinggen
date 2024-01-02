@@ -4,9 +4,12 @@ import com.baidu.aip.speech.AipSpeech;
 import com.baidu.aip.speech.TtsResponse;
 import com.baidu.aip.util.Util;
 import jnr.posix.WString;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
+
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @Author jiangxintian
@@ -43,8 +46,20 @@ public class SpeechUtil {
         // 调用接口
         JSONObject res = client.asr(path, "wav", 16000, null);
         System.out.println(res.toString(2));
+        JSONObject jsonObject = res;
+        JSONArray resultArray = (JSONArray) jsonObject.get("result");
+        String result = (String) resultArray.get(0);
+
+        String errMsg = (String) jsonObject.get("err_msg");
+
+        System.out.println("Result: " + result);
+        System.out.println("Error Message: " + errMsg);
     }
 
+    public static void main(String[] args) {
+        AipSpeech client = init_client();
+        asrByFile("/Users/jiangxintian/IdeaProjects/copywritinggen/src/main/resources/recorded_audio.wav", client);
+    }
     /**
      * 语音识别
      * @param data
