@@ -13,6 +13,7 @@ import com.buaa.copywritinggen.util.HttpClientUtils;
 import com.buaa.copywritinggen.util.SpeechUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -107,38 +108,44 @@ public class GenController {
             }
             case "3":{
                 //有音频没有图片
-               String ret = genService.asrByAudioToText(audio);
-               System.out.println("Audio:"+ret);
-               genQuery.setUserText(ret);
                 try {
+                    String keyword = genService.asrByAudioToText(audio);
+                    System.out.println("Audio:"+keyword);
+                    genQuery.setUserText(assembleKeyWord(genQuery,keyword));
                     responseResult = genWord(genQuery,res);
                 } catch (IOException e) {
                     e.printStackTrace();
                     System.out.println(e);
                 }
+                break;
             }
             case "2":{
                 //有图片没有音频
                 try {
                     String keyword = genImageStr(genQuery);
-                    genQuery.setUserText(keyword);
+                    System.out.println("image:"+keyword);
+                    genQuery.setUserText(assembleKeyWord(genQuery,keyword));
                     responseResult = genWord(genQuery,res);
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    e.printStackTrace();
+                    System.out.println(e);
                 }
+                break;
             }
             default:{
                 try {
                     //图片声音都存在
-                    String ret = genService.asrByAudioToText(audio);
-                    System.out.println("Audio:"+ret);
-                    String keyword = genImageStr(genQuery);
-                    System.out.println("image:"+keyword);
-                    String text = ret + "以及" + keyword;
-                    genQuery.setUserText(text);
+                    String audioKeyword = genService.asrByAudioToText(audio);
+                    System.out.println("Audio:"+audioKeyword);
+                    String imageKeyword = genImageStr(genQuery);
+                    System.out.println("image:"+imageKeyword);
+                    genQuery.setUserText(assembleKeyWord(genQuery,audioKeyword));
+                    genQuery.setUserText(assembleKeyWord(genQuery,imageKeyword));
+                    System.out.println("All keyword:"+genQuery.getUserText());
                     responseResult = genWord(genQuery,res);
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    e.printStackTrace();
+                    System.out.println(e);
                 }
             }
         }
@@ -158,8 +165,12 @@ public class GenController {
         req.put("image", genQuery.getImage().split(",")[1]);
         //System.out.println("req:"+req.toString());
         JSONObject jsonObject = HttpClientUtils.doPost("http://localhost:5000/image_keyword",req);
-        System.out.println("imageJsonRet:"+jsonObject.toString());
-        String keyword = (String) jsonObject.get("image_keyword");
+        String keyword = (String)jsonObject.get("image_keyword");
+        return keyword;
+    }
+
+    private String assembleKeyWord(GenQuery genQuery,String word){
+        String keyword = StringUtils.isNotEmpty(genQuery.getUserText())?genQuery.getUserText()+" "+word:word;
         return keyword;
     }
 
