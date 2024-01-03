@@ -127,7 +127,7 @@ public class HttpClientUtils {
      * post请求
      *
      * @param path url地址
-     * @param Info jsonobject 参数
+     * @param info jsonobject 参数
      * @return
      * @throws IOException
      */

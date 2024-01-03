@@ -149,9 +149,8 @@ public class GenController {
     @PostMapping("/textForAudio")
     public ResponseResult<String> textForAudio(@RequestBody GenQuery genQuery) {
         byte[] bytes = SpeechUtil.synByByte(genQuery.getText(), SpeechUtil.init_client());
-        Encoder encoder = Base64.getEncoder();
-        String audioBase64 = encoder.encodeToString(bytes);
-        return ResponseResult.success("成功", audioBase64);
+        String base64Str = Base64.getEncoder().encodeToString(bytes);
+        return ResponseResult.success("成功", base64Str);
     }
 
     private static String genImageStr(GenQuery genQuery) throws IOException {
