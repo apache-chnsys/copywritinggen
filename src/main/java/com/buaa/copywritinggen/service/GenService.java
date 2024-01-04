@@ -12,12 +12,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.HttpHeaders;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.UnsupportedAudioFileException;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.nio.file.Path;
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -252,11 +254,65 @@ public class GenService {
         String asr = null;
         //将语音转换为文字，然后再调用文字生成
         try{
-            asr = speech2TextService.asr(file.getBytes());
+            validateWavFile(file);
+            Path tempDir = Files.createTempDirectory("temp_audio");
+            Path filePath = tempDir.resolve("recording.wav");
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            // 进行采样率转换
+            byte[] convertedAudioData = convertAudioFormat(filePath, 16000);
+
+            asr = speech2TextService.asr(convertedAudioData);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return asr;
+    }
+
+    private boolean validateWavFile(MultipartFile file) throws IOException, UnsupportedAudioFileException {
+        try (AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new ByteArrayInputStream(file.getBytes()))) {
+            AudioFormat audioFormat = audioInputStream.getFormat();
+            // 验证WAV文件是否为PCM编码
+            if (audioFormat.getEncoding() != AudioFormat.Encoding.PCM_SIGNED) {
+                return false;
+            }
+            // 其他验证逻辑可以根据需要添加
+        }
+        return true;
+    }
+
+    private byte[] convertAudioFormat(Path audioFilePath, int targetSampleRate) throws IOException, UnsupportedAudioFileException {
+        // 读取原始 WAV 文件
+        AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(audioFilePath.toFile());
+
+        // 获取原始音频流的格式
+        AudioFormat sourceFormat = audioInputStream.getFormat();
+
+        // 创建目标音频格式（更改采样率）
+        AudioFormat targetFormat = new AudioFormat(
+                sourceFormat.getEncoding(),
+                targetSampleRate,
+                sourceFormat.getSampleSizeInBits(),
+                sourceFormat.getChannels(),
+                sourceFormat.getFrameSize(),
+                targetSampleRate,
+                sourceFormat.isBigEndian());
+
+        // 进行采样率转换
+        AudioInputStream convertedAudioStream = AudioSystem.getAudioInputStream(targetFormat, audioInputStream);
+
+        // 从转换后的音频流中读取数据
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+        while ((bytesRead = convertedAudioStream.read(buffer)) != -1) {
+            outputStream.write(buffer, 0, bytesRead);
+        }
+
+        // 关闭音频流
+        convertedAudioStream.close();
+        audioInputStream.close();
+
+        return outputStream.toByteArray();
     }
 
     /**
